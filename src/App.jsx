@@ -61,6 +61,8 @@ export default function App() {
         <NumResults movies={movies} />
       </NavBar>
       <Main>
+        {/* 2 ways to deal with prop drilling */}
+        {/* 1. component composition(implicit) */}
         <Box>
           <MovieList movies={movies} />
         </Box>
@@ -68,6 +70,17 @@ export default function App() {
           <WatchedSummary watched={watched} />
           <WatchedMovieList watched={watched} />
         </Box>
+        {/* 2. explicitly defined props */}
+        {/* <Box children={<MovieList movies={movies} />} /> */}
+        {/* make use of fragment to wrap around/engulf multiple arguments */}
+        {/* <Box
+          children={
+            <>
+              <WatchedSummary watched={watched} />
+              <WatchedMovieList watched={watched} />
+            </>
+          }
+        /> */}
       </Main>
     </>
   );
