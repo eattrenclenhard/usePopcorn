@@ -52,7 +52,7 @@ const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 const KEY = "f84fc31d";
 export default function App() {
-  const [query, setQuery] = useState("inception");
+  const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -95,8 +95,8 @@ export default function App() {
           setMovies(data.Search);
           setError("");
         } catch (err) {
-          console.error(err.message);
-          if (err.className !== "AbortError") {
+          if (err.name !== "AbortError") {
+            console.error(err.message);
             setError(err.message);
           }
         } finally {
@@ -110,6 +110,7 @@ export default function App() {
         return;
       }
 
+      handleCloseMovie();
       fetchMovies();
 
       return function () {
@@ -301,6 +302,22 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
 
   useEffect(
     function () {
+      function escCallback(e) {
+        if (e.code === "Escape") {
+          onCloseMovie();
+        }
+      }
+      document.addEventListener("keydown", escCallback);
+
+      return () => {
+        document.removeEventListener("keydown", escCallback);
+      };
+    },
+    [onCloseMovie]
+  );
+
+  useEffect(
+    function () {
       async function getMovieDetails() {
         try {
           setIsLoading(true);
@@ -309,7 +326,6 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
             `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
           );
           const data = await res.json();
-          console.log("fetch movie detail->", data);
           setMovie(data);
         } catch (err) {
           console.error(err.message);
@@ -330,7 +346,6 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
 
       return function () {
         document.title = "usePopcorn";
-        console.log(`clean up effect for movie ${title}`);
       };
     },
     [title]
