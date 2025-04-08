@@ -301,7 +301,6 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
           const data = await res.json();
           console.log("fetch movie detail->", data);
           setMovie(data);
-          // setIsLoading(false);
         } catch (err) {
           console.error(err.message);
           setError(err.message);
@@ -312,6 +311,14 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       getMovieDetails();
     },
     [selectedId]
+  );
+
+  useEffect(
+    function () {
+      if (!title) return;
+      document.title = `Movie | ${title}`;
+    },
+    [title]
   );
 
   return (
