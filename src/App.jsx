@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import StarRating from "./StarRating";
+import axios, { isCancel, AxiosError } from "axios";
 
 const tempMovieData = [
   {
@@ -50,7 +51,8 @@ const tempWatchedData = [
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
-const KEY = "f84fc31d";
+const KEY = import.meta.env.VITE_API_KEY;
+
 export default function App() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
@@ -83,21 +85,25 @@ export default function App() {
         try {
           setIsLoading(true);
           setError("");
-          const res = await fetch(
-            `https://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+          const res = await axios.get(
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
             { signal: controller.signal }
           );
-
-          if (!res.ok)
-            throw new Error("Something went wrong with fetching movies");
-          const data = await res.json();
-          if (data.Response === "False") throw new Error("Movie not found");
-          setMovies(data.Search);
+          console.log(res.data);
+          if (res.data.Response === "False") throw new Error("Movie not found");
+          setMovies(res.data.Search);
           setError("");
         } catch (err) {
           if (err.name !== "AbortError") {
-            console.error(err.message);
-            setError(err.message);
+            console.log(err.message, err.code);
+            if (err.name !== "CanceledError") {
+              console.log("canceled exception block");
+              console.log(err, err.message);
+              setError(err.message);
+            } else {
+              console.log("something went wrong block", err.message, err);
+              setError("Something went wrong with fetching movies.");
+            }
           }
         } finally {
           setIsLoading(false);
