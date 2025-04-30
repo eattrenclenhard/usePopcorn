@@ -283,8 +283,22 @@ function Movie({ movie, onSelectMovie }) {
 function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [userRating, setUserRating] = useState("0");
+  const [userRating, setUserRating] = useState("");
   const [error, setError] = useState("");
+
+  const countRef = useRef(0);
+  // let count = 0; // this won't work, would always reset to zero upon each re-render, regular variable is neither persistent and doesn't trigger a re-render
+  // useRef is a persistent variable that doesn't trigger a re-render
+  // useState both persists variable and triggers a re-render
+
+  // we're NOT allowed to mutate the ref in render logic, so we use useEffect
+  useEffect(
+    function () {
+      // we DON'T use setter function here, we simply mutate the current property which is in the useref
+      if (userRating) countRef.current++;
+    },
+    [userRating]
+  );
 
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
   const watchUserRating = watched.find(
@@ -313,6 +327,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
+      countRatingDecisions: countRef.current,
     };
     onAddWatched(newWatchedMovie);
     onCloseMovie();
