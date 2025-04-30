@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import StarRating from "./StarRating";
 import axios from "axios";
 
@@ -12,10 +12,12 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [error, setError] = useState("");
-  const [watched, setWatched] = useState(function () {
-    const storedValue = localStorage.getItem("watched");
-    return JSON.parse(storedValue);
-  });
+  const [watched, setWatched] = useState([]);
+
+  // const [watched, setWatched] = useState(function () {
+  //   const storedValue = localStorage.getItem("watched");
+  //   return JSON.parse(storedValue);
+  // });
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -170,7 +172,39 @@ function Logo() {
   );
 }
 
+// not pythonic, or React-esque way of doing things, this is too imperative.
+// that's where useRef comes into play
+// useRefs are MEANT for data that's not rendered in the visual output of the component
+// So usually refs only appear in event handlers or effects, but not in the JSX
 function Search({ query, setQuery }) {
+  const inputEl = useRef(null);
+
+  // useRef to select DOM element, and apply focus
+  useEffect(
+    function () {
+      function callback(e) {
+        // if the input element has been focused b4, abort
+        // so that when you mistype 'enter' while inputting search term, the entered characters won't be wiped out
+        if (document.activeElement === inputEl.current) return;
+
+        if (e.code === "Enter") {
+          inputEl.current.focus();
+          setQuery("");
+        }
+      }
+      document.addEventListener("keydown", callback);
+      // console.log(inputEl.current);
+      return () => document.addEventListener("keydown", callback);
+    },
+    [setQuery]
+  );
+
+  // useEffect(function () {
+  //   const el = document.querySelector(".search");
+  //   console.log(el);
+  //   el.focus();
+  // }, []);
+
   return (
     <input
       className="search"
@@ -178,6 +212,20 @@ function Search({ query, setQuery }) {
       placeholder="Search movies..."
       value={query}
       onChange={(e) => setQuery(e.target.value)}
+      ref={inputEl}
+      // ref is a special prop recognized by React to assign references to DOM elements or components
+      /* assign an element to inputRef, but the value is placed on the right side
+      That’s understandable—`ref={inputRef}` does invert the usual assignment pattern, where the left side holds the variable. But in JSX, `ref` is a prop, and you're passing `inputRef` *to* React, not the other way around.
+
+Think of it as instructing React:  
+“Attach the DOM node to `inputRef.current` when this element mounts.”
+
+React handles the assignment internally:
+```js
+inputRef.current = inputElement;
+```
+
+You're not assigning—it’s declarative. JSX tells React what to do, and React handles the actual wiring. */
     />
   );
 }
